@@ -1,31 +1,30 @@
 # Rivalz Node Management Script
 
-This repository provides a simple and user-friendly script to manage the installation, updating, and removal of a Rivalz Node on Ubuntu. Whether you're new to running nodes or an experienced user, this script is designed to make the process straightforward and efficient.
+This repository contains a script to easily manage the installation, updating, and removal of a Rivalz Node on Ubuntu. The script is designed to be user-friendly and includes optional proxy settings.
 
 ## Features
 
-- **Install Rivalz Node**: Automatically installs NVM (Node Version Manager), Node.js, and the Rivalz CLI, then starts the node.
+- **Install Rivalz Node**: Automatically installs NVM, Node.js, and the Rivalz CLI, and runs the node.
 - **Update Rivalz Node**: Updates the Rivalz CLI package to the latest version.
 - **Remove Rivalz Node**: Completely removes the Rivalz Node and associated files.
-- **Update Proxy Settings**: Easily configure and update proxy settings if needed.
+- **Update Proxy Settings**: Allows you to configure and update proxy settings as needed.
 
 ## Prerequisites
 
 - **Operating System**: Ubuntu 20.04 or 22.04.
 - **Basic Knowledge**: Familiarity with terminal commands is helpful but not required.
-- **Dependencies**: The script will automatically install `curl` if it’s not already installed.
 
-## Installation and Usage Instructions
+## Installation Instructions
 
-### Step 1: Update Your Ubuntu System
+1. **Download the Script**:
+   Clone this repository to your Ubuntu system:
+   ```bash
+   git clone https://github.com/huge8888/rivalz-node-v2.1.git
+   cd rivalz-node-v2.1
+   chmod +x rivalz.sh
+   ./rivalz.sh
 
-After installing Ubuntu, open a terminal and update your system:
+Credits
 
-```bash
-sudo apt update && sudo apt upgrade -y
-
-### Step 2: Create the Script File:
-
-•	Open a terminal and create the script file:
-
-nano rivalz.sh
+Created by 0xHuge. Follow on Twitter at https://x.com/0xHuge.
+   
