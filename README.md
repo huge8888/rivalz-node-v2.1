@@ -19,6 +19,8 @@ This repository contains a script to easily manage the installation, updating, a
 1. **Download the Script**:
    Clone this repository to your Ubuntu system:
    ```bash
+   sudo apt update && sudo apt upgrade -y
+   sudo apt install git -y
    git clone https://github.com/huge8888/rivalz-node-v2.1.git
    cd rivalz-node-v2.1
    chmod +x rivalz.sh
