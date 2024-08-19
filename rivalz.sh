@@ -5,9 +5,6 @@ BOLD=$(tput bold)
 RESET=$(tput sgr0)
 YELLOW=$(tput setaf 3)
 
-# Define log file for proxy updates
-LOG_FILE="$HOME/rivalz-proxy-update.log"
-
 # Function to print commands in bold and yellow
 print_command() {
   echo -e "${BOLD}${YELLOW}$1${RESET}"
@@ -23,45 +20,14 @@ install_curl() {
   fi
 }
 
-# Function to input and validate proxy settings
-input_and_validate_proxy() {
-    while true; do
-        echo "Please enter your proxy details:"
-        read -p "Enter your proxy server (e.g., proxy-server.com): " PROXY_SERVER
-        read -p "Enter your proxy port (e.g., 8080): " PROXY_PORT
-        read -p "Enter your proxy username: " PROXY_USER
-        read -sp "Enter your proxy password: " PROXY_PASS
-        echo
-
-        # Export the proxy settings
-        export HTTP_PROXY="http://${PROXY_USER}:${PROXY_PASS}@${PROXY_SERVER}:${PROXY_PORT}"
-        export HTTPS_PROXY="https://${PROXY_USER}:${PROXY_PASS}@${PROXY_SERVER}:${PROXY_PORT}"
-
-        # Check if the proxy is working
-        print_command "Validating proxy settings..."
-        if curl -x "${HTTP_PROXY}" -s https://www.google.com > /dev/null; then
-            print_command "Proxy settings are working correctly."
-            break
-        else
-            echo "Proxy validation failed. Please check your settings."
-            read -p "Do you want to re-enter your proxy settings? (y/n): " retry_proxy
-            if [[ "$retry_proxy" =~ ^[Nn]$ ]]; then
-                echo "Exiting..."
-                exit 1
-            fi
-        fi
-    done
-}
-
 # Function to install the Rivalz Node
 install_node() {
     install_curl
-    input_and_validate_proxy
 
     cd $HOME || { echo "Failed to change directory to $HOME. Exiting."; exit 1; }
 
     print_command "Installing NVM and Node.js..."
-    curl -x "${HTTP_PROXY}" -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.3/install.sh | bash || { echo "Failed to download and install NVM. Exiting."; exit 1; }
+    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.3/install.sh | bash || { echo "Failed to download and install NVM. Exiting."; exit 1; }
 
     export NVM_DIR="$([ -z "${XDG_CONFIG_HOME-}" ] && printf %s "${HOME}/.nvm" || printf %s "${XDG_CONFIG_HOME}/nvm")"
 
