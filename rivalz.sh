@@ -7,13 +7,20 @@ YELLOW=$(tput setaf 3)
 
 # Define log file for proxy updates
 LOG_FILE="$HOME/rivalz-proxy-update.log"
-BACKUP_DIR="$HOME/rivalz-backups"
-DATA_DIR="$HOME/.rivalz"  # Assume this is the data directory
-CONFIG_FILE="$HOME/.config/rivalz-node-cli/config.json"  # Assume this is the config file
 
 # Function to print commands in bold and yellow
 print_command() {
   echo -e "${BOLD}${YELLOW}$1${RESET}"
+}
+
+# Function to check and install curl if missing
+install_curl() {
+  if ! command -v curl &> /dev/null; then
+    print_command "curl is not installed. Installing curl..."
+    sudo apt update && sudo apt install curl -y || { echo "Failed to install curl. Exiting."; exit 1; }
+  else
+    print_command "curl is already installed."
+  fi
 }
 
 # Function to prompt for proxy details and update settings
@@ -90,8 +97,6 @@ retry_proxy_update() {
 # Function to revert to previous proxy settings
 revert_proxy_settings() {
     print_command "Reverting to previous proxy settings..."
-    # Implement logic to restore previous proxy settings if needed
-    # For now, just notify the user
     echo "Reverting is not implemented in this example."
     echo "$(date): Attempted to revert proxy settings" >> "$LOG_FILE"
 }
@@ -99,11 +104,12 @@ revert_proxy_settings() {
 # Function to install the Rivalz Node
 install_node() {
     configure_proxy
+    install_curl
 
     cd $HOME || { echo "Failed to change directory to $HOME. Exiting."; exit 1; }
 
     print_command "Installing NVM and Node.js..."
-    curl -x "${HTTP_PROXY}" -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.3/install.sh | bash || { echo "Failed to download and install NVM. Exiting."; exit 1; }
+    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.3/install.sh | bash || { echo "Failed to download and install NVM. Exiting."; exit 1; }
 
     export NVM_DIR="$([ -z "${XDG_CONFIG_HOME-}" ] && printf %s "${HOME}/.nvm" || printf %s "${XDG_CONFIG_HOME}/nvm")"
 
@@ -139,57 +145,12 @@ update_node() {
     return_to_menu
 }
 
-# Function to update the proxy settings and validate them
-update_proxy() {
-    print_command "Updating proxy settings..."
-    configure_proxy
-    validate_proxy
-    return_to_menu
-}
-
-# Function to view logs
-view_logs() {
-    print_command "Displaying logs..."
-    if [ -f "/var/log/rivalz-node.log" ]; then
-        tail -f /var/log/rivalz-node.log
-    else
-        echo "Log file not found. Ensure that the Rivalz Node is running."
-    fi
-
-    return_to_menu
-}
-
 # Function to remove the Rivalz Node
 remove_node() {
     print_command "Removing Rivalz Node..."
     npm uninstall -g rivalz-node-cli || { echo "Failed to uninstall Rivalz CLI."; }
     rm -rf "$HOME/.nvm" || { echo "Failed to remove NVM directory."; }
     print_command "Rivalz Node has been removed."
-
-    return_to_menu
-}
-
-# Function to create a backup
-backup_node() {
-    mkdir -p "$BACKUP_DIR"
-    BACKUP_FILE="$BACKUP_DIR/rivalz-backup-$(date +%F-%T).tar.gz"
-    print_command "Creating backup..."
-    tar -czvf "$BACKUP_FILE" "$DATA_DIR" "$CONFIG_FILE" || { echo "Failed to create backup."; return_to_menu; }
-    print_command "Backup created at $BACKUP_FILE."
-
-    return_to_menu
-}
-
-# Function to restore a backup
-restore_node() {
-    read -p "Enter the path to the backup file: " BACKUP_FILE
-    if [ -f "$BACKUP_FILE" ]; then
-        print_command "Restoring from backup..."
-        tar -xzvf "$BACKUP_FILE" -C / || { echo "Failed to restore from backup."; return_to_menu; }
-        print_command "Backup restored successfully."
-    else
-        echo "Backup file not found."
-    fi
 
     return_to_menu
 }
@@ -207,39 +168,29 @@ show_menu() {
     echo "============================"
     echo "Please choose an option:"
     echo "1) Install Rivalz Node"
-    echo "2) View Rivalz Node Logs"
+    echo "2) Update Rivalz Node"
     echo "3) Remove Rivalz Node"
-    echo "4) Backup Rivalz Node"
-    echo "5) Restore Rivalz Node"
-    echo "6) Update Rivalz Node"
-    echo "7) Update Proxy Settings"
-    echo "8) Exit"
+    echo "4) Update Proxy Settings"
+    echo "5) Exit"
     echo "============================"
-    read -p "Enter your choice [1-8]: " choice
+    echo "Created by 0xHuge. Follow on Twitter at https://x.com/0xHuge"
+    echo "============================"
+    read -p "Enter your choice [1-5]: " choice
 
     case $choice in
         1)
             install_node
             ;;
         2)
-            view_logs
+            update_node
             ;;
         3)
             remove_node
             ;;
         4)
-            backup_node
-            ;;
-        5)
-            restore_node
-            ;;
-        6)
-            update_node
-            ;;
-        7)
             update_proxy
             ;;
-        8)
+        5)
             echo "Exiting..."
             exit 0
             ;;
