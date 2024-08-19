@@ -7,6 +7,9 @@ YELLOW=$(tput setaf 3)
 
 # Define log file for proxy updates
 LOG_FILE="$HOME/rivalz-proxy-update.log"
+BACKUP_DIR="$HOME/rivalz-backups"
+DATA_DIR="$HOME/.rivalz"  # Assume this is the data directory
+CONFIG_FILE="$HOME/.config/rivalz-node-cli/config.json"  # Assume this is the config file
 
 # Function to print commands in bold and yellow
 print_command() {
