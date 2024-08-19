@@ -23,93 +23,45 @@ install_curl() {
   fi
 }
 
-# Function to prompt for proxy details and update settings
-configure_proxy() {
-    echo "Current proxy settings:"
-    echo "HTTP_PROXY=${HTTP_PROXY}"
-    echo "HTTPS_PROXY=${HTTPS_PROXY}"
-    echo
-    read -p "Do you want to update the proxy settings? (y/n): " use_proxy
-    if [[ "$use_proxy" =~ ^[Yy]$ ]]; then
+# Function to input and validate proxy settings
+input_and_validate_proxy() {
+    while true; do
+        echo "Please enter your proxy details:"
+        read -p "Enter your proxy server (e.g., proxy-server.com): " PROXY_SERVER
+        read -p "Enter your proxy port (e.g., 8080): " PROXY_PORT
         read -p "Enter your proxy username: " PROXY_USER
         read -sp "Enter your proxy password: " PROXY_PASS
         echo
-        read -p "Enter your proxy server (e.g., proxy-server.com): " PROXY_SERVER
-        read -p "Enter your proxy port (e.g., 8080): " PROXY_PORT
 
         # Export the proxy settings
         export HTTP_PROXY="http://${PROXY_USER}:${PROXY_PASS}@${PROXY_SERVER}:${PROXY_PORT}"
         export HTTPS_PROXY="https://${PROXY_USER}:${PROXY_PASS}@${PROXY_SERVER}:${PROXY_PORT}"
-        npm config set proxy "${HTTP_PROXY}"
-        npm config set https-proxy "${HTTPS_PROXY}"
 
-        # Log the update
-        echo "$(date): Updated proxy to ${HTTP_PROXY}" >> "$LOG_FILE"
-        print_command "Proxy settings updated."
-    else
-        print_command "No changes made to proxy settings."
-    fi
-}
-
-# Function to validate proxy settings
-validate_proxy() {
-    print_command "Validating proxy settings..."
-    if curl -x "${HTTP_PROXY}" -s https://www.google.com > /dev/null; then
-        print_command "Proxy settings are working correctly."
-    else
-        echo "Proxy validation failed. Please check your settings."
-        echo "$(date): Proxy validation failed for ${HTTP_PROXY}" >> "$LOG_FILE"
-        retry_proxy_update
-    fi
-}
-
-# Function to retry or revert proxy settings if validation fails
-retry_proxy_update() {
-    echo "Proxy validation failed. What would you like to do next?"
-    echo "1) Retry validation"
-    echo "2) Re-enter proxy settings"
-    echo "3) Revert to previous proxy settings"
-    echo "4) Skip validation"
-    read -p "Enter your choice [1-4]: " choice
-
-    case $choice in
-        1)
-            validate_proxy
-            ;;
-        2)
-            configure_proxy
-            validate_proxy
-            ;;
-        3)
-            revert_proxy_settings
-            validate_proxy
-            ;;
-        4)
-            echo "Skipping validation."
-            ;;
-        *)
-            echo "Invalid option. Returning to main menu."
-            return_to_menu
-            ;;
-    esac
-}
-
-# Function to revert to previous proxy settings
-revert_proxy_settings() {
-    print_command "Reverting to previous proxy settings..."
-    echo "Reverting is not implemented in this example."
-    echo "$(date): Attempted to revert proxy settings" >> "$LOG_FILE"
+        # Check if the proxy is working
+        print_command "Validating proxy settings..."
+        if curl -x "${HTTP_PROXY}" -s https://www.google.com > /dev/null; then
+            print_command "Proxy settings are working correctly."
+            break
+        else
+            echo "Proxy validation failed. Please check your settings."
+            read -p "Do you want to re-enter your proxy settings? (y/n): " retry_proxy
+            if [[ "$retry_proxy" =~ ^[Nn]$ ]]; then
+                echo "Exiting..."
+                exit 1
+            fi
+        fi
+    done
 }
 
 # Function to install the Rivalz Node
 install_node() {
-    configure_proxy
     install_curl
+    input_and_validate_proxy
 
     cd $HOME || { echo "Failed to change directory to $HOME. Exiting."; exit 1; }
 
     print_command "Installing NVM and Node.js..."
-    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.3/install.sh | bash || { echo "Failed to download and install NVM. Exiting."; exit 1; }
+    curl -x "${HTTP_PROXY}" -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.3/install.sh | bash || { echo "Failed to download and install NVM. Exiting."; exit 1; }
 
     export NVM_DIR="$([ -z "${XDG_CONFIG_HOME-}" ] && printf %s "${HOME}/.nvm" || printf %s "${XDG_CONFIG_HOME}/nvm")"
 
@@ -170,12 +122,11 @@ show_menu() {
     echo "1) Install Rivalz Node"
     echo "2) Update Rivalz Node"
     echo "3) Remove Rivalz Node"
-    echo "4) Update Proxy Settings"
-    echo "5) Exit"
+    echo "4) Exit"
     echo "============================"
     echo "Created by 0xHuge. Follow on Twitter at https://x.com/0xHuge"
     echo "============================"
-    read -p "Enter your choice [1-5]: " choice
+    read -p "Enter your choice [1-4]: " choice
 
     case $choice in
         1)
@@ -188,9 +139,6 @@ show_menu() {
             remove_node
             ;;
         4)
-            update_proxy
-            ;;
-        5)
             echo "Exiting..."
             exit 0
             ;;
