@@ -84,13 +84,14 @@ show_menu() {
     clear
     echo "Rivalz Node Management Script"
     echo "============================"
+    echo "Created by 0xHuge."
+    echo "Follow me on X at https://x.com/0xHuge"
+    echo "============================"
     echo "Please choose an option:"
     echo "1) Install Rivalz Node"
     echo "2) Update Rivalz Node"
     echo "3) Remove Rivalz Node"
     echo "4) Exit"
-    echo "============================"
-    echo "Created by 0xHuge. Follow on Twitter at https://x.com/0xHuge"
     echo "============================"
     read -p "Enter your choice [1-4]: " choice
 
